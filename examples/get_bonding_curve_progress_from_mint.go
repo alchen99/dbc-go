@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"math/big"
+	"os"
 
 	"github.com/alchen99/dbc-go/common"
 	"github.com/alchen99/dbc-go/helpers"
@@ -31,10 +32,17 @@ func GetBondingCurveProgressFromMint() {
 	}
 
 	rpcClient := rpc.New(env["RPC_URL"])
-	tokenMintStr := env["TOKEN_MINT_ADDRESS"]
+
+	// Get TOKEN_MINT_ADDRESS from command line argument, fallback to .env
+	tokenMintStr := ""
+	if len(os.Args) > 1 {
+		tokenMintStr = os.Args[1]
+	} else {
+		tokenMintStr = env["TOKEN_MINT_ADDRESS"]
+	}
 
 	if tokenMintStr == "" {
-		log.Fatal("TOKEN_MINT_ADDRESS is required in .env")
+		log.Fatal("TOKEN_MINT_ADDRESS is required as an argument or in .env")
 	}
 
 	fmt.Println("Looking for bonding curve progress for token:", tokenMintStr)
