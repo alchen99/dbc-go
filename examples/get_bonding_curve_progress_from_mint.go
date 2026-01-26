@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"math/big"
 	"os"
 
 	"github.com/alchen99/dbc-go/common"
@@ -14,16 +13,7 @@ import (
 	"github.com/gagliardetto/solana-go"
 	"github.com/gagliardetto/solana-go/rpc"
 	"github.com/mew-sh/dotenv"
-	"lukechampine.com/uint128"
 )
-
-// u128ToBig converts uint128.Uint128 to *big.Int
-func u128ToBig(val uint128.Uint128) *big.Int {
-	hi := new(big.Int).SetUint64(val.Hi)
-	lo := new(big.Int).SetUint64(val.Lo)
-	hi.Lsh(hi, 64)
-	return hi.Or(hi, lo)
-}
 
 func GetBondingCurveProgressFromMint() {
 	env, err := dotenv.Read(".env")
@@ -111,7 +101,7 @@ func GetBondingCurveProgressFromMint() {
 
 		// Similar to original example: Calculate quote reserve for a specific price
 		// Here we use the current SqrtPrice from the pool as an example
-		currentSqrtPrice := u128ToBig(pool.SqrtPrice)
+		currentSqrtPrice := math.U128ToBig(pool.SqrtPrice)
 		totalAmount, err := math.GetQuoteReserveFromNextSqrtPrice(currentSqrtPrice, poolConfig)
 		if err != nil {
 			fmt.Printf("Note: Could not calculate theoretical reserve from current price: %v\n", err)

@@ -48,13 +48,13 @@ func GetQuoteReserveFromNextSqrtPrice(nextSqrtPrice *big.Int, config *common.Poo
 	for i := 0; i < common.MaxCurvePoint; i++ {
 		var lowerSqrtPrice *big.Int
 		if i == 0 {
-			lowerSqrtPrice = u128ToBig(config.SqrtStartPrice)
+			lowerSqrtPrice = U128ToBig(config.SqrtStartPrice)
 		} else {
-			lowerSqrtPrice = u128ToBig(config.Curve[i-1].SqrtPrice)
+			lowerSqrtPrice = U128ToBig(config.Curve[i-1].SqrtPrice)
 		}
 
 		if nextSqrtPrice.Cmp(lowerSqrtPrice) > 0 {
-			curveUpperSqrtPrice := u128ToBig(config.Curve[i].SqrtPrice)
+			curveUpperSqrtPrice := U128ToBig(config.Curve[i].SqrtPrice)
 
 			var upperSqrtPrice *big.Int
 			if nextSqrtPrice.Cmp(curveUpperSqrtPrice) < 0 {
@@ -63,7 +63,7 @@ func GetQuoteReserveFromNextSqrtPrice(nextSqrtPrice *big.Int, config *common.Poo
 				upperSqrtPrice = curveUpperSqrtPrice
 			}
 
-			liquidity := u128ToBig(config.Curve[i].Liquidity)
+			liquidity := U128ToBig(config.Curve[i].Liquidity)
 
 			maxAmountIn, err := GetDeltaAmountQuoteUnsigned(
 				lowerSqrtPrice,

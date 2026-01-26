@@ -117,7 +117,7 @@ func Pow(base, exponent *big.Int, scaling bool) (*big.Int, error) {
 }
 
 // converts uint128.Uint128 to *big.Int
-func u128ToBig(val uint128.Uint128) *big.Int {
+func U128ToBig(val uint128.Uint128) *big.Int {
 	hi := new(big.Int).SetUint64(val.Hi)
 	lo := new(big.Int).SetUint64(val.Lo)
 	hi.Lsh(hi, 64)
