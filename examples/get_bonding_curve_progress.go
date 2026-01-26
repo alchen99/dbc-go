@@ -10,12 +10,19 @@ import (
 	"github.com/alchen99/dbc-go/math"
 	"github.com/gagliardetto/solana-go"
 	"github.com/gagliardetto/solana-go/rpc"
+	"github.com/mew-sh/dotenv"
 )
 
 func GetBondingCurveProgress() {
-	rpcClient := rpc.New("https://api.mainnet-beta.solana.com")
+	env, err := dotenv.Read(".env")
 
-	configAddressStr := "YOUR_CONFIG_ADDRESS"
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	rpcClient := rpc.New(env["RPC_URL"])
+
+	configAddressStr := env["POOL_ADDRESS"]
 	configAddress := solana.MustPublicKeyFromBase58(configAddressStr)
 
 	ctx := context.Background()
@@ -41,6 +48,6 @@ func GetBondingCurveProgress() {
 	fmt.Printf("Total quote amount for sqrt_price %s is: %s\n", nextSqrtPrice.String(), totalAmount.String())
 }
 
-func main() {
-	GetBondingCurveProgress()
-}
+// func main() {
+// 	GetBondingCurveProgress()
+// }

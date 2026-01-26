@@ -9,14 +9,21 @@ import (
 	"github.com/alchen99/dbc-go/instructions"
 	"github.com/gagliardetto/solana-go"
 	"github.com/gagliardetto/solana-go/rpc"
+	"github.com/mew-sh/dotenv"
 )
 
 func GetPoolConfig() {
-	rpcClient := rpc.New("https://api.mainnet-beta.solana.com")
+	env, err := dotenv.Read(".env")
 
-	configAddressStr := "YOUR_CONFIG_KEY"
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	fmt.Println("Getting pool config...")
+	rpcClient := rpc.New(env["RPC_URL"])
+
+	configAddressStr := env["POOL_ADDRESS"]
+
+	fmt.Println("Getting pool config for", configAddressStr, "...")
 	configAddress := solana.MustPublicKeyFromBase58(configAddressStr)
 
 	ctx := context.Background()
@@ -44,6 +51,6 @@ func GetPoolConfig() {
 
 }
 
-// func main() {
-// 	GetPoolConfig()
-// }
+func main() {
+	GetPoolConfig()
+}

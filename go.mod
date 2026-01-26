@@ -1,9 +1,10 @@
 module github.com/alchen99/dbc-go
 
-go 1.21
+go 1.24
 
 require (
 	github.com/gagliardetto/solana-go v1.8.4
+	github.com/mew-sh/dotenv v0.0.0-20250706192342-dfbc445d205b
 	lukechampine.com/uint128 v1.3.0
 )
 

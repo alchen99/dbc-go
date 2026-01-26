@@ -11,6 +11,7 @@ import (
 	system "github.com/gagliardetto/solana-go/programs/system"
 	token "github.com/gagliardetto/solana-go/programs/token"
 	"github.com/gagliardetto/solana-go/rpc"
+	"github.com/mew-sh/dotenv"
 
 	"github.com/alchen99/dbc-go/common"
 	"github.com/alchen99/dbc-go/helpers"
@@ -18,15 +19,21 @@ import (
 )
 
 func CreatePoolAndSwapSol() {
+	env, err := dotenv.Read(".env")
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	ctx := context.Background()
-	client := rpc.New("https://api.mainnet-beta.solana.com")
+	client := rpc.New(env["RPC_URL"])
 
 	// 1) load payer and pool creator PKs
-	payer := solana.MustPrivateKeyFromBase58("YOUR_PAYER_PRIVATE_KEY")
-	poolCreator := solana.MustPrivateKeyFromBase58("YOUR_POOL_CREATOR_PRIVATE_KEY")
+	payer := solana.MustPrivateKeyFromBase58(env["PAYER_PRIVATE_KEY"])
+	poolCreator := solana.MustPrivateKeyFromBase58(env["POOL_CREATOR_PRIVATE_KEY"])
 
 	// 2) config key (generate on launch.meteora.ag)
-	config := solana.MustPublicKeyFromBase58("YOUR_CONFIG_PUBLIC_KEY")
+	config := solana.MustPublicKeyFromBase58(env["CONFIG_PUBLIC_KEY"])
 
 	// 3) generate baseMint (can be vanity)
 	baseMintWallet := solana.NewWallet()
@@ -62,9 +69,9 @@ func CreatePoolAndSwapSol() {
 		quoteVault,
 		mintMetadata,
 		payer.PublicKey(),
-		"test",
-		"TEST",
-		"https://test.fun",
+		env["TOKEN_NAME"],
+		env["TOKEN_SYMBOL"],
+		env["TOKEN_URI"],
 	)
 
 	// wrap and swap quote mint (0.01 SOL)
