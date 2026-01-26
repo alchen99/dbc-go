@@ -12,9 +12,9 @@ import (
 	token "github.com/gagliardetto/solana-go/programs/token"
 	"github.com/gagliardetto/solana-go/rpc"
 
-	"github.com/dannwee/dbc-go/common"
-	"github.com/dannwee/dbc-go/helpers"
-	"github.com/dannwee/dbc-go/instructions"
+	"github.com/alchen99/dbc-go/common"
+	"github.com/alchen99/dbc-go/helpers"
+	"github.com/alchen99/dbc-go/instructions"
 )
 
 func CreatePoolAndSwapSol() {

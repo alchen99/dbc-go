@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"log"
 
-	"github.com/dannwee/dbc-go/common"
+	"github.com/alchen99/dbc-go/common"
 	"github.com/gagliardetto/solana-go"
 )
 

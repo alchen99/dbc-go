@@ -1,0 +1,28 @@
+.DS_Store
+**/*.swp
+
+# credentials
+**/*.pem
+**/*-credentials.yaml
+**/*-credentials.json
+**/gha-creds-*.json
+
+# misc
+**/*.local.yaml
+**/*.local.yml
+**/.env
+**/.env.local
+**/.env*.local
+**/.env.*.local
+
+# Binary and temp files
+**/*.tgz
+**/z-*
+**/z-*.*
+**/z.*
+**/*.tmp
+**/*.bak
+**/*.old
+**/*.new
+**/*.swp
+tmp/

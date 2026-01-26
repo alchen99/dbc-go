@@ -3,7 +3,7 @@ package math
 import (
 	"math/big"
 
-	"github.com/dannwee/dbc-go/common"
+	"github.com/alchen99/dbc-go/common"
 )
 
 // gets the delta amount_quote for given liquidity and price range
