@@ -4,6 +4,7 @@ const (
 	DbcProgramID    = "dbcij3LWUppWqq96dh6gJWwBifmcGfLSB5D4DuSMaqN"
 	DammV1ProgramID = "Eo7WjKq67rjJQSZxS6z3YkapzY3eMj6Xy8X5EQVn5UaB"
 	DammV2ProgramID = "cpamdpZCGKUy5JxQXB4dcpGPiikHawvSWAd6mEn1sGG"
+	DlmmProgramID   = "LBUZKhRxPF3XUpBCjp4YzTKgLccjZhTSDM9YuVaPwxo"
 
 	MetadataProgram  = "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s"
 	TokenProgram     = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"

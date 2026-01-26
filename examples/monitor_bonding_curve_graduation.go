@@ -1,7 +1,9 @@
 package main
 
 import (
+	"bytes"
 	"context"
+	"crypto/sha256"
 	"fmt"
 	"log"
 
@@ -135,13 +137,44 @@ func monitorBondingCurveGraduation() {
 
 	// Token has graduated, now find where it went
 	fmt.Println("Searching for graduated pool address...")
-	findGraduatedPool(ctx, rpcClient, tokenMint)
+	findGraduatedPool(ctx, rpcClient, tokenMint, poolAddress)
 }
 
-func findGraduatedPool(ctx context.Context, rpcClient *rpc.Client, tokenMint solana.PublicKey) {
-	// 1. Try DAMM V2 (DLMM)
+func findGraduatedPool(ctx context.Context, rpcClient *rpc.Client, tokenMint solana.PublicKey, dbcPoolAddress solana.PublicKey) {
+	// 1. Try Migration Transaction Parsing (Most Reliable)
+	fmt.Println("Checking migration transactions...")
+	if found := findGraduatedPoolByMigrationTx(ctx, rpcClient, dbcPoolAddress); found {
+		return
+	}
+
+	// 2. Try DAMM V2 (DLMM)
 	// Typical DLMM layout: Disc(8), Config(32), TokenX(32), TokenY(32)
 	// We check offset 40 and 72 for the mint.
+	dlmmProgramID := solana.MustPublicKeyFromBase58(common.DlmmProgramID)
+
+	for _, offset := range []uint64{40, 72} {
+		pools, err := rpcClient.GetProgramAccountsWithOpts(
+			ctx,
+			dlmmProgramID,
+			&rpc.GetProgramAccountsOpts{
+				Filters: []rpc.RPCFilter{
+					{
+						Memcmp: &rpc.RPCFilterMemcmp{
+							Offset: offset,
+							Bytes:  tokenMint.Bytes(),
+						},
+					},
+				},
+			},
+		)
+		if err == nil && len(pools) > 0 {
+			fmt.Printf("SUCCESS (GPA): Token graduated to a DLMM pool!\n")
+			fmt.Printf("Pool Address: %s\n", pools[0].Pubkey.String())
+			return
+		}
+	}
+
+	// 3. Try CP-Swap (Commerce Partners)
 	v2ProgramID := solana.MustPublicKeyFromBase58(common.DammV2ProgramID)
 
 	for _, offset := range []uint64{40, 72} {
@@ -160,13 +193,13 @@ func findGraduatedPool(ctx context.Context, rpcClient *rpc.Client, tokenMint sol
 			},
 		)
 		if err == nil && len(pools) > 0 {
-			fmt.Printf("SUCCESS: Token graduated to a DAMM v2 (DLMM) pool!\n")
+			fmt.Printf("SUCCESS (GPA): Token graduated to a CP-Swap pool!\n")
 			fmt.Printf("Pool Address: %s\n", pools[0].Pubkey.String())
 			return
 		}
 	}
 
-	// 2. Try DAMM V1 (Standard AMM)
+	// 4. Try DAMM V1 (Standard AMM)
 	// Typical AMM layout: Disc(8), TokenA(32), TokenB(32)
 	// We check offset 8 and 40 for the mint.
 	v1ProgramID := solana.MustPublicKeyFromBase58(common.DammV1ProgramID)
@@ -193,8 +226,95 @@ func findGraduatedPool(ctx context.Context, rpcClient *rpc.Client, tokenMint sol
 		}
 	}
 
-	fmt.Println("Graduation detected on-chain but could not locate the new pool in DAMM v1 or v2 programs yet.")
+	fmt.Println("Graduation detected on-chain but could not locate the new pool in DAMM v1, v2 or DLMM programs yet.")
 	fmt.Println("It might still be in the process of initialization.")
+}
+
+func findGraduatedPoolByMigrationTx(ctx context.Context, rpcClient *rpc.Client, dbcPoolAddress solana.PublicKey) bool {
+	limit := 20
+	// Fetch recent signatures for the DBC pool
+	signatures, err := rpcClient.GetSignaturesForAddressWithOpts(
+		ctx,
+		dbcPoolAddress,
+		&rpc.GetSignaturesForAddressOpts{
+			Limit: &limit,
+		},
+	)
+	if err != nil {
+		fmt.Printf("Failed to get signatures for DBC pool: %v\n", err)
+		return false
+	}
+
+	dbcProgramID := solana.MustPublicKeyFromBase58(common.DbcProgramID)
+
+	// Calculate discriminators for migration instructions
+	// Anchor discriminator = sha256("global:<name>")[:8]
+	calcDisc := func(name string) []byte {
+		h := sha256.New()
+		h.Write([]byte(fmt.Sprintf("global:%s", name)))
+		return h.Sum(nil)[:8]
+	}
+
+	migrationDammV2Disc := calcDisc("migration_damm_v2")
+	migrateMeteoraDammDisc := calcDisc("migrate_meteora_damm")
+
+	for _, sig := range signatures {
+		maxVersion := uint64(0)
+		txResp, err := rpcClient.GetTransaction(
+			ctx,
+			sig.Signature,
+			&rpc.GetTransactionOpts{
+				MaxSupportedTransactionVersion: &maxVersion,
+				Encoding:                       solana.EncodingBase64,
+			},
+		)
+		if err != nil || txResp == nil {
+			continue
+		}
+
+		tx, err := txResp.Transaction.GetTransaction()
+		if err != nil {
+			continue
+		}
+
+		// Look for instructions invoking the DBC program
+		for _, inst := range tx.Message.Instructions {
+			programID := tx.Message.AccountKeys[inst.ProgramIDIndex]
+			if !programID.Equals(dbcProgramID) {
+				continue
+			}
+
+			// Check if it's a migration instruction
+			if len(inst.Data) < 8 {
+				continue
+			}
+
+			disc := inst.Data[:8]
+			if bytes.Equal(disc, migrationDammV2Disc) {
+				// migration_damm_v2: New Pool is typically at index 4 of instruction accounts
+				if len(inst.Accounts) > 4 {
+					poolIndex := inst.Accounts[4]
+					poolAddress := tx.Message.AccountKeys[poolIndex]
+					fmt.Printf("SUCCESS (TX): Found graduated pool via migration_damm_v2!\n")
+					fmt.Printf("Pool Address: %s\n", poolAddress.String())
+					return true
+				}
+			} else if bytes.Equal(disc, migrateMeteoraDammDisc) {
+				// migrate_meteora_damm: We'll look for an account owned by a Meteora program
+				// or assume similar positioning if possible.
+				// Based on common patterns, it's usually one of the early writable accounts.
+				for _, accIdx := range inst.Accounts {
+					accAddr := tx.Message.AccountKeys[accIdx]
+					// Check if this account is owned by a Meteora program (requires additional RPC call or heuristic)
+					// For now, if we found the instruction, we'll print the first candidate or all writable ones.
+					fmt.Printf("SUCCESS (TX): Found migration_meteora_damm instruction!\n")
+					fmt.Printf("Candidate Pool Address: %s\n", accAddr.String())
+					return true
+				}
+			}
+		}
+	}
+	return false
 }
 
 func main() {
