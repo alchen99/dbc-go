@@ -51,6 +51,6 @@ func GetPoolConfig() {
 
 }
 
-func main() {
-	GetPoolConfig()
-}
+// func main() {
+// 	GetPoolConfig()
+//}
