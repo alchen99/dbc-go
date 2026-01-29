@@ -317,6 +317,6 @@ func findGraduatedPoolByMigrationTx(ctx context.Context, rpcClient *rpc.Client, 
 	return false
 }
 
-func main() {
-	monitorBondingCurveGraduation()
-}
+// func main() {
+// 	monitorBondingCurveGraduation()
+// }
