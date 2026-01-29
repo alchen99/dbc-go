@@ -123,3 +123,17 @@ func U128ToBig(val uint128.Uint128) *big.Int {
 	hi.Lsh(hi, 64)
 	return hi.Or(hi, lo)
 }
+
+// Uint128FromBigInt converts a big.Int to ag_binary.Uint128
+func Uint128FromBigInt(n *big.Int) uint128.Uint128 {
+	out := uint128.Uint128{}
+	if n == nil {
+		return out
+	}
+	low := new(big.Int).And(n, new(big.Int).SetUint64(0xffffffffffffffff))
+	high := new(big.Int).Rsh(n, 64)
+
+	out.Lo = low.Uint64()
+	out.Hi = high.Uint64()
+	return out
+}
