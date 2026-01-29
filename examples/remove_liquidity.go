@@ -20,7 +20,7 @@ import (
 	"github.com/alchen99/dbc-go/math"
 )
 
-func main() {
+func RemoveLiquidity() {
 	env, err := dotenv.Read(".env")
 	if err != nil {
 		log.Printf("Warning: .env file not found, using environment variables")
@@ -292,3 +292,7 @@ func main() {
 	}
 	fmt.Println("Transaction might have failed or is taking too long to confirm.")
 }
+
+// func main() {
+// 	RemoveLiquidity()
+// }
