@@ -3,23 +3,31 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log"
 	"os"
+
+	"github.com/mew-sh/dotenv"
+)
+
+var (
+	rpcUrlFlag  = flag.String("rpc", "", "Override RPC URL")
+	mainnetFlag = flag.Bool("mainnet", false, "Use mainnet-beta RPC URL")
 )
 
 func main() {
-	ccf := flag.Bool("ccf", false, "Short for claim_creator_trading_fee")
-	cptf := flag.Bool("cptf", false, "Short for claim_partner_trading_fee")
-	cps := flag.Bool("cps", false, "Short for create_pool_and_swap_sol")
-	cpu := flag.Bool("cpu", false, "Short for create_pool_and_swap_usdc")
-	gbcp := flag.Bool("gbcp", false, "Short for get_bonding_curve_progress")
-	gbcpf := flag.Bool("gbcpf", false, "Short for get_bonding_curve_progress_from_mint")
-	gp := flag.Bool("gp", false, "Short for get_pool")
-	gpc := flag.Bool("gpc", false, "Short for get_pool_config")
-	gpcf := flag.Bool("gpcf", false, "Short for get_pool_config_from_mint")
-	gpfm := flag.Bool("gpfm", false, "Short for get_pool_fee_metrics")
-	mbcg := flag.Bool("mbcg", false, "Short for monitor_bonding_curve_graduation")
-	rl := flag.Bool("rl", false, "Short for remove_liquidity")
-	tpc := flag.Bool("tpc", false, "Short for transfer_pool_creator")
+	ccf := flag.Bool("ccf", false, "Run claim_creator_trading_fee")
+	cptf := flag.Bool("cptf", false, "Run claim_partner_trading_fee")
+	cps := flag.Bool("cps", false, "Run create_pool_and_swap_sol")
+	cpu := flag.Bool("cpu", false, "Run create_pool_and_swap_usdc")
+	gbcp := flag.Bool("gbcp", false, "Run get_bonding_curve_progress")
+	gbcpf := flag.Bool("gbcpf", false, "Run get_bonding_curve_progress_from_mint")
+	gp := flag.Bool("gp", false, "Run get_pool")
+	gpc := flag.Bool("gpc", false, "Run get_pool_config")
+	gpcf := flag.Bool("gpcf", false, "Run get_pool_config_from_mint")
+	gpfm := flag.Bool("gpfm", false, "Run get_pool_fee_metrics")
+	mbcg := flag.Bool("mbcg", false, "Run monitor_bonding_curve_graduation")
+	rl := flag.Bool("rl", false, "Run remove_liquidity")
+	tpc := flag.Bool("tpc", false, "Run transfer_pool_creator")
 
 	flag.Usage = printUsage
 	flag.Parse()
@@ -101,6 +109,24 @@ func main() {
 		printUsage()
 		os.Exit(1)
 	}
+}
+
+func getRPCURL() string {
+	if *rpcUrlFlag != "" {
+		log.Printf("Using network: %s", *rpcUrlFlag)
+		return *rpcUrlFlag
+	}
+	if *mainnetFlag {
+		log.Printf("Using network: MAINNET")
+		return "https://api.mainnet-beta.solana.com"
+	}
+	env, err := dotenv.Read(".env")
+	if err != nil {
+		log.Printf("Warning: .env file not found, using default devnet RPC")
+		return "https://api.devnet.solana.com"
+	}
+	log.Printf("Using custom network: %s", env["RPC_URL"])
+	return env["RPC_URL"]
 }
 
 func printUsage() {

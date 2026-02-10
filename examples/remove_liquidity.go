@@ -26,11 +26,7 @@ func RemoveLiquidity() {
 		log.Printf("Warning: .env file not found, using environment variables")
 	}
 
-	rpcUrl := env["RPC_URL"]
-	if rpcUrl == "" {
-		rpcUrl = "https://api.mainnet-beta.solana.com"
-	}
-	rpcClient := rpc.New(rpcUrl)
+	rpcClient := rpc.New(getRPCURL())
 
 	privKeyStr := env["PRIVATE_KEY"]
 	if privKeyStr == "" {

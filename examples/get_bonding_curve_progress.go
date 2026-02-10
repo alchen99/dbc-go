@@ -20,7 +20,7 @@ func GetBondingCurveProgress() {
 		log.Fatal(err)
 	}
 
-	rpcClient := rpc.New(env["RPC_URL"])
+	rpcClient := rpc.New(getRPCURL())
 
 	configAddressStr := env["POOL_ADDRESS"]
 	configAddress := solana.MustPublicKeyFromBase58(configAddressStr)

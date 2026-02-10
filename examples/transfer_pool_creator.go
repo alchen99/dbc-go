@@ -23,7 +23,7 @@ func TransferPoolCreator() {
 	}
 
 	ctx := context.Background()
-	client := rpc.New(env["RPC_URL"])
+	client := rpc.New(getRPCURL())
 
 	// Get NEW_CREATOR_PRIVATE_KEY from command line argument
 	newCreatorPublicKey := ""

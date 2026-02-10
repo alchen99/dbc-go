@@ -19,7 +19,7 @@ func GetPoolConfig() {
 		log.Fatal(err)
 	}
 
-	rpcClient := rpc.New(env["RPC_URL"])
+	rpcClient := rpc.New(getRPCURL())
 
 	configAddressStr := env["POOL_ADDRESS"]
 

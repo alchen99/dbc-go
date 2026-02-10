@@ -26,7 +26,7 @@ func CreatePoolAndSwapSol() {
 	}
 
 	ctx := context.Background()
-	client := rpc.New(env["RPC_URL"])
+	client := rpc.New(getRPCURL())
 
 	// 1) load payer and pool creator PKs
 	payer := solana.MustPrivateKeyFromBase58(env["PAYER_PRIVATE_KEY"])
