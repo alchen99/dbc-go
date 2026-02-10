@@ -9,6 +9,7 @@ import (
 	"github.com/gagliardetto/solana-go"
 	associatedtokenaccount "github.com/gagliardetto/solana-go/programs/associated-token-account"
 	"github.com/gagliardetto/solana-go/rpc"
+	"github.com/mew-sh/dotenv"
 
 	"github.com/alchen99/dbc-go/common"
 	"github.com/alchen99/dbc-go/helpers"
@@ -16,12 +17,18 @@ import (
 )
 
 func ClaimCreatorTradingFee() {
+	env, err := dotenv.Read(".env")
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	ctx := context.Background()
-	client := rpc.New("https://api.mainnet-beta.solana.com")
+	client := rpc.New(env["RPC_URL"])
 
 	// 1) load payer and creator PKs
-	payer := solana.MustPrivateKeyFromBase58("YOUR_PAYER_PRIVATE_KEY")
-	creator := solana.MustPrivateKeyFromBase58("YOUR_CREATOR_PRIVATE_KEY")
+	payer := solana.MustPrivateKeyFromBase58(env["PAYER_PRIVATE_KEY"])
+	creator := solana.MustPrivateKeyFromBase58(env["POOL_CREATOR_PRIVATE_KEY"])
 
 	// 2) pool address
 	pool := solana.MustPublicKeyFromBase58("YOUR_POOL_ADDRESS")

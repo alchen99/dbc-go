@@ -9,6 +9,7 @@ import (
 	"github.com/gagliardetto/solana-go"
 	associatedtokenaccount "github.com/gagliardetto/solana-go/programs/associated-token-account"
 	"github.com/gagliardetto/solana-go/rpc"
+	"github.com/mew-sh/dotenv"
 
 	"github.com/alchen99/dbc-go/common"
 	"github.com/alchen99/dbc-go/helpers"
@@ -16,8 +17,14 @@ import (
 )
 
 func ClaimPartnerTradingFee() {
+	env, err := dotenv.Read(".env")
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	ctx := context.Background()
-	client := rpc.New("https://api.mainnet-beta.solana.com")
+	client := rpc.New(env["RPC_URL"])
 
 	// 1) load payer and fee claimer PKs
 	payer := solana.MustPrivateKeyFromBase58("YOUR_PAYER_PRIVATE_KEY")

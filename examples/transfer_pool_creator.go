@@ -4,26 +4,43 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 	"time"
 
 	"github.com/gagliardetto/solana-go"
 	"github.com/gagliardetto/solana-go/rpc"
+	"github.com/mew-sh/dotenv"
 
 	"github.com/alchen99/dbc-go/helpers"
 	"github.com/alchen99/dbc-go/instructions"
 )
 
 func TransferPoolCreator() {
+	env, err := dotenv.Read(".env")
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	ctx := context.Background()
-	client := rpc.New("https://api.mainnet-beta.solana.com")
+	client := rpc.New(env["RPC_URL"])
+
+	// Get NEW_CREATOR_PRIVATE_KEY from command line argument
+	newCreatorPublicKey := ""
+	if len(os.Args) < 1 {
+		log.Fatal("NEW_CREATOR_PRIVATE_KEY is required as an argument")
+	} else {
+		newCreatorPublicKey = os.Args[1]
+
+	}
 
 	// 1) load payer and creator PKs
-	payer := solana.MustPrivateKeyFromBase58("YOUR_PAYER_PRIVATE_KEY")
-	creator := solana.MustPrivateKeyFromBase58("YOUR_CREATOR_PRIVATE_KEY")
-	newCreator := solana.MustPublicKeyFromBase58("NEW_CREATOR_PUBLIC_KEY")
+	payer := solana.MustPrivateKeyFromBase58(env["PAYER_PRIVATE_KEY"])
+	creator := solana.MustPrivateKeyFromBase58(env["POOL_CREATOR_PRIVATE_KEY"])
+	newCreator := solana.MustPublicKeyFromBase58(newCreatorPublicKey)
 
 	// 2) virtual pool address
-	virtualPool := solana.MustPublicKeyFromBase58("YOUR_VIRTUAL_POOL_ADDRESS")
+	virtualPool := solana.MustPublicKeyFromBase58(env["POOL_ADDRESS"])
 
 	// 3) get pool state to get config
 	poolState, err := client.GetAccountInfo(ctx, virtualPool)

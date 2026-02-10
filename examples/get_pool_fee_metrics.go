@@ -9,12 +9,19 @@ import (
 	"github.com/alchen99/dbc-go/instructions"
 	"github.com/gagliardetto/solana-go"
 	"github.com/gagliardetto/solana-go/rpc"
+	"github.com/mew-sh/dotenv"
 )
 
 func GetPoolFeeMetrics() {
-	rpcClient := rpc.New("https://api.mainnet-beta.solana.com")
+	env, err := dotenv.Read(".env")
 
-	poolAddressStr := "YOUR_POOL_ADDRESS"
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	rpcClient := rpc.New(env["RPC_URL"])
+
+	poolAddressStr := env["POOL_ADDRESS"]
 
 	fmt.Println("Getting pool fee metrics...")
 	poolAddress := solana.MustPublicKeyFromBase58(poolAddressStr)
