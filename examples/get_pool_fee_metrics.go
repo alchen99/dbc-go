@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/alchen99/dbc-go/instructions"
 	"github.com/gagliardetto/solana-go"
@@ -21,7 +22,17 @@ func GetPoolFeeMetrics() {
 
 	rpcClient := rpc.New(getRPCURL())
 
-	poolAddressStr := env["POOL_ADDRESS"]
+	// Get POOL_ADDRESS from command line argument, fallback to .env
+	poolAddressStr := ""
+	if len(os.Args) > 1 {
+		poolAddressStr = os.Args[1]
+	} else {
+		poolAddressStr = env["POOL_ADDRESS"]
+	}
+
+	if poolAddressStr == "" {
+		log.Fatal("POOL_ADDRESS is required as an argument or in .env")
+	}
 
 	fmt.Println("Getting pool fee metrics...")
 	poolAddress := solana.MustPublicKeyFromBase58(poolAddressStr)

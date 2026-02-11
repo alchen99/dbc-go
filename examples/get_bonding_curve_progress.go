@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"math/big"
+	"os"
 
 	"github.com/alchen99/dbc-go/instructions"
 	"github.com/alchen99/dbc-go/math"
@@ -22,7 +23,18 @@ func GetBondingCurveProgress() {
 
 	rpcClient := rpc.New(getRPCURL())
 
-	configAddressStr := env["POOL_ADDRESS"]
+	// Get POOL_ADDRESS from command line argument, fallback to .env
+	configAddressStr := ""
+	if len(os.Args) > 1 {
+		configAddressStr = os.Args[1]
+	} else {
+		configAddressStr = env["POOL_ADDRESS"]
+	}
+
+	if configAddressStr == "" {
+		log.Fatal("POOL_ADDRESS is required as an argument or in .env")
+	}
+
 	configAddress := solana.MustPublicKeyFromBase58(configAddressStr)
 
 	ctx := context.Background()

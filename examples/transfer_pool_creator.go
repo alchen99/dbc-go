@@ -26,21 +26,33 @@ func TransferPoolCreator() {
 	client := rpc.New(getRPCURL())
 
 	// Get NEW_CREATOR_PRIVATE_KEY from command line argument
-	newCreatorPublicKey := ""
-	if len(os.Args) < 1 {
-		log.Fatal("NEW_CREATOR_PRIVATE_KEY is required as an argument")
-	} else {
-		newCreatorPublicKey = os.Args[1]
+	if len(os.Args) < 2 {
+		log.Fatal("Usage: go run examples/transfer_pool_creator.go <NEW_CREATOR_PRIVATE_KEY> <POOL_ADDRESS>")
+	}
 
+	newCreator, err := solana.PublicKeyFromBase58(os.Args[1])
+	if err != nil {
+		log.Fatalf("invalid pool address: %v", err)
 	}
 
 	// 1) load payer and creator PKs
-	payer := solana.MustPrivateKeyFromBase58(env["PAYER_PRIVATE_KEY"])
-	creator := solana.MustPrivateKeyFromBase58(env["POOL_CREATOR_PRIVATE_KEY"])
-	newCreator := solana.MustPublicKeyFromBase58(newCreatorPublicKey)
+	payerPrivateKey := env["PAYER_PRIVATE_KEY"]
+	if payerPrivateKey == "" {
+		log.Fatal("PAYER_PRIVATE_KEY not found in .env")
+	}
+	payer := solana.MustPrivateKeyFromBase58(payerPrivateKey)
+
+	poolCreatorPrivateKey := env["POOL_CREATOR_PRIVATE_KEY"]
+	if poolCreatorPrivateKey == "" {
+		log.Fatal("POOL_CREATOR_PRIVATE_KEY not found in .env")
+	}
+	creator := solana.MustPrivateKeyFromBase58(poolCreatorPrivateKey)
 
 	// 2) virtual pool address
-	virtualPool := solana.MustPublicKeyFromBase58(env["POOL_ADDRESS"])
+	virtualPool, err := solana.PublicKeyFromBase58(os.Args[2])
+	if err != nil {
+		log.Fatalf("invalid pool address: %v", err)
+	}
 
 	// 3) get pool state to get config
 	poolState, err := client.GetAccountInfo(ctx, virtualPool)

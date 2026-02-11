@@ -28,9 +28,9 @@ func RemoveLiquidity() {
 
 	rpcClient := rpc.New(getRPCURL())
 
-	privKeyStr := env["PRIVATE_KEY"]
+	privKeyStr := env["PAYER_PRIVATE_KEY"]
 	if privKeyStr == "" {
-		log.Fatal("PRIVATE_KEY not found in .env")
+		log.Fatal("PAYER_PRIVATE_KEY not found in .env")
 	}
 	payer, err := solana.PrivateKeyFromBase58(privKeyStr)
 	if err != nil {
